@@ -11,9 +11,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/piwebapi/":
-            self._json({"Links": {"Self": "http://challenge:8080/piwebapi/", "DataServers": "http://challenge:8080/piwebapi/dataservers"}})
+            self._json({"Links": {"Self": "http://challenge:80/piwebapi/", "DataServers": "http://challenge:80/piwebapi/dataservers"}})
         elif self.path == "/piwebapi/dataservers":
-            self._json({"Items": [{"WebId": "F1DS1234", "Name": "PI-SERVER-01", "Links": {"Self": "http://challenge:8080/piwebapi/dataservers/F1DS1234"}}]})
+            self._json({"Items": [{"WebId": "F1DS1234", "Name": "PI-SERVER-01", "Links": {"Self": "http://challenge:80/piwebapi/dataservers/F1DS1234"}}]})
         elif self.path == "/piwebapi/dataservers/F1DS1234":
             flag = open("/flag").read().strip()
             self._json({"WebId": "F1DS1234", "Name": "PI-SERVER-01", "ServerVersion": "3.4.440.21", "IsConnected": True, "flag": flag})
@@ -23,4 +23,4 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args): pass
 
 if __name__ == "__main__":
-    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+    HTTPServer(("0.0.0.0", 80), Handler).serve_forever()

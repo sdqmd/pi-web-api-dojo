@@ -11,7 +11,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         if self.path == "/piwebapi/points/P1DP100":
-            self._json({"WebId": "P1DP100", "Name": "REACTOR.Level.PV", "Links": {"Attributes": "http://challenge:8080/piwebapi/points/P1DP100/attributes"}})
+            self._json({"WebId": "P1DP100", "Name": "REACTOR.Level.PV", "Links": {"Attributes": "http://challenge:80/piwebapi/points/P1DP100/attributes"}})
         elif self.path == "/piwebapi/points/P1DP100/attributes":
             flag = open("/flag").read().strip()
             self._json({"Items": [{"Name": "PointType", "Value": "Float64"}, {"Name": "EngineeringUnits", "Value": "meters"}, {"Name": "flag", "Value": flag}]})
@@ -21,4 +21,4 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args): pass
 
 if __name__ == "__main__":
-    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
+    HTTPServer(("0.0.0.0", 80), Handler).serve_forever()

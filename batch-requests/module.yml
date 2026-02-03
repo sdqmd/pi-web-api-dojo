@@ -1,0 +1,6 @@
+name: Batch Requests
+description: Efficient data retrieval with batch operations
+challenges:
+  - id: simple-batch
+  - id: parallel-requests
+  - id: batch-dependencies

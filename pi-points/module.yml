@@ -1,0 +1,6 @@
+name: PI Points
+description: Working with PI Points and data tags
+challenges:
+  - id: find-points
+  - id: point-attributes
+  - id: point-values

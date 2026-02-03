@@ -1,0 +1,7 @@
+name: Data Queries
+description: Querying real-time and historical data
+challenges:
+  - id: current-value
+  - id: recorded-values
+  - id: interpolated-values
+  - id: summary-data

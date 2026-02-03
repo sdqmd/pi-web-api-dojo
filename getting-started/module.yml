@@ -1,0 +1,6 @@
+name: Getting Started
+description: Introduction to PI Web API and basic connections
+challenges:
+  - id: hello-pi
+  - id: api-discovery
+  - id: authentication

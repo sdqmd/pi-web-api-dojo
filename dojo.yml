@@ -1,0 +1,12 @@
+id: pi-web-api-basics
+name: PI Web API Basics
+description: Learn to interact with OSIsoft PI System Web API
+type: course
+award:
+  emoji: 📊
+image: pwncollege/challenge-simple
+modules:
+  - id: getting-started
+  - id: pi-points
+  - id: data-queries
+  - id: batch-requests

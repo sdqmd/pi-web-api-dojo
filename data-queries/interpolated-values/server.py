@@ -1,31 +1,27 @@
-#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+#!/usr/bin/python3
+from http.server import HTTPServer, BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
+import json
 
-from flask import Flask, jsonify, request
+class Handler(BaseHTTPRequestHandler):
+    def _json(self, data, status=200):
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode())
 
-app = Flask(__name__)
+    def do_GET(self):
+        parsed = urlparse(self.path)
+        if parsed.path == "/piwebapi/streams/P1DP500/interpolated":
+            if parse_qs(parsed.query).get("interval"):
+                flag = open("/flag").read().strip()
+                self._json({"Items": [{"Timestamp": "2026-02-03T07:00:00Z", "Value": 50.0}, {"Timestamp": "2026-02-03T08:00:00Z", "Value": 50.3}], "flag": flag})
+            else:
+                self._json({"error": "Specify interval parameter"}, 400)
+        else:
+            self._json({"hint": "Query with interval parameter for interpolated values"})
 
-@app.route("/piwebapi/streams/P1DP500/interpolated", methods=["GET"])
-def interpolated():
-    interval = request.args.get("interval", "")
-    if interval:
-        flag = open("/flag").read().strip()
-        return jsonify({
-            "Items": [
-                {"Timestamp": "2026-02-03T07:00:00Z", "Value": 50.0},
-                {"Timestamp": "2026-02-03T07:10:00Z", "Value": 51.2},
-                {"Timestamp": "2026-02-03T07:20:00Z", "Value": 52.1},
-                {"Timestamp": "2026-02-03T07:30:00Z", "Value": 51.8},
-                {"Timestamp": "2026-02-03T07:40:00Z", "Value": 50.5},
-                {"Timestamp": "2026-02-03T07:50:00Z", "Value": 49.9},
-                {"Timestamp": "2026-02-03T08:00:00Z", "Value": 50.3}
-            ],
-            "flag": flag
-        })
-    return jsonify({"error": "Specify interval parameter"}), 400
-
-@app.route("/")
-def index():
-    return jsonify({"hint": "Query with interval parameter for interpolated values"})
+    def log_message(self, *args): pass
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()

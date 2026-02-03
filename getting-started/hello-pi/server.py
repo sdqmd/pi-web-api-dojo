@@ -1,27 +1,25 @@
-#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+#!/usr/bin/python3
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
 
-from flask import Flask, jsonify
+class Handler(BaseHTTPRequestHandler):
+    def _json(self, data, status=200):
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode())
 
-app = Flask(__name__)
+    def do_GET(self):
+        if self.path == "/piwebapi/":
+            flag = open("/flag").read().strip()
+            self._json({
+                "Links": {"Self": "http://challenge:8080/piwebapi/", "DataServers": "http://challenge:8080/piwebapi/dataservers"},
+                "WebId": "P1DS1234567890", "Version": "2019 SP1", "flag": flag
+            })
+        else:
+            self._json({"hint": "Try GET /piwebapi/"})
 
-@app.route("/piwebapi/", methods=["GET"])
-def api_root():
-    flag = open("/flag").read().strip()
-    return jsonify({
-        "Links": {
-            "Self": "http://challenge/piwebapi/",
-            "AssetServers": "http://challenge/piwebapi/assetservers",
-            "DataServers": "http://challenge/piwebapi/dataservers",
-            "Search": "http://challenge/piwebapi/search"
-        },
-        "WebId": "P1DS1234567890",
-        "Version": "2019 SP1",
-        "flag": flag
-    })
-
-@app.route("/")
-def index():
-    return jsonify({"hint": "Try GET /piwebapi/"})
+    def log_message(self, *args): pass
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()

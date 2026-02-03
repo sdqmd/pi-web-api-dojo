@@ -1,34 +1,24 @@
-#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+#!/usr/bin/python3
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
 
-from flask import Flask, jsonify
+class Handler(BaseHTTPRequestHandler):
+    def _json(self, data, status=200):
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode())
 
-app = Flask(__name__)
+    def do_GET(self):
+        if self.path == "/piwebapi/points/P1DP100":
+            self._json({"WebId": "P1DP100", "Name": "REACTOR.Level.PV", "Links": {"Attributes": "http://challenge:8080/piwebapi/points/P1DP100/attributes"}})
+        elif self.path == "/piwebapi/points/P1DP100/attributes":
+            flag = open("/flag").read().strip()
+            self._json({"Items": [{"Name": "PointType", "Value": "Float64"}, {"Name": "EngineeringUnits", "Value": "meters"}, {"Name": "flag", "Value": flag}]})
+        else:
+            self._json({"hint": "Get attributes from /piwebapi/points/P1DP100/attributes"})
 
-@app.route("/piwebapi/points/P1DP100", methods=["GET"])
-def point():
-    return jsonify({
-        "WebId": "P1DP100",
-        "Name": "REACTOR.Level.PV",
-        "Links": {"Attributes": "http://challenge/piwebapi/points/P1DP100/attributes"}
-    })
-
-@app.route("/piwebapi/points/P1DP100/attributes", methods=["GET"])
-def attributes():
-    flag = open("/flag").read().strip()
-    return jsonify({
-        "Items": [
-            {"Name": "PointType", "Value": "Float64"},
-            {"Name": "EngineeringUnits", "Value": "meters"},
-            {"Name": "Zero", "Value": 0},
-            {"Name": "Span", "Value": 100},
-            {"Name": "Descriptor", "Value": "Reactor Tank Level"},
-            {"Name": "flag", "Value": flag}
-        ]
-    })
-
-@app.route("/")
-def index():
-    return jsonify({"hint": "Get attributes from /piwebapi/points/P1DP100/attributes"})
+    def log_message(self, *args): pass
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()

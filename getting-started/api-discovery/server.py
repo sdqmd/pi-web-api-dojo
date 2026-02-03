@@ -1,44 +1,26 @@
-#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+#!/usr/bin/python3
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
 
-from flask import Flask, jsonify
+class Handler(BaseHTTPRequestHandler):
+    def _json(self, data, status=200):
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode())
 
-app = Flask(__name__)
+    def do_GET(self):
+        if self.path == "/piwebapi/":
+            self._json({"Links": {"Self": "http://challenge:8080/piwebapi/", "DataServers": "http://challenge:8080/piwebapi/dataservers"}})
+        elif self.path == "/piwebapi/dataservers":
+            self._json({"Items": [{"WebId": "F1DS1234", "Name": "PI-SERVER-01", "Links": {"Self": "http://challenge:8080/piwebapi/dataservers/F1DS1234"}}]})
+        elif self.path == "/piwebapi/dataservers/F1DS1234":
+            flag = open("/flag").read().strip()
+            self._json({"WebId": "F1DS1234", "Name": "PI-SERVER-01", "ServerVersion": "3.4.440.21", "IsConnected": True, "flag": flag})
+        else:
+            self._json({"hint": "Start at /piwebapi/ and explore"})
 
-@app.route("/piwebapi/", methods=["GET"])
-def api_root():
-    return jsonify({
-        "Links": {
-            "Self": "http://challenge/piwebapi/",
-            "DataServers": "http://challenge/piwebapi/dataservers"
-        }
-    })
-
-@app.route("/piwebapi/dataservers", methods=["GET"])
-def dataservers():
-    return jsonify({
-        "Items": [
-            {
-                "WebId": "F1DS1234",
-                "Name": "PI-SERVER-01",
-                "Links": {"Self": "http://challenge/piwebapi/dataservers/F1DS1234"}
-            }
-        ]
-    })
-
-@app.route("/piwebapi/dataservers/F1DS1234", methods=["GET"])
-def dataserver_detail():
-    flag = open("/flag").read().strip()
-    return jsonify({
-        "WebId": "F1DS1234",
-        "Name": "PI-SERVER-01",
-        "ServerVersion": "3.4.440.21",
-        "IsConnected": True,
-        "flag": flag
-    })
-
-@app.route("/")
-def index():
-    return jsonify({"hint": "Start at /piwebapi/ and explore"})
+    def log_message(self, *args): pass
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()

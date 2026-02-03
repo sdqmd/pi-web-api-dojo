@@ -1,25 +1,31 @@
-#!/usr/bin/exec-suid -- /usr/bin/python3 -I
+#!/usr/bin/python3
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
 
-from flask import Flask, jsonify, request
+class Handler(BaseHTTPRequestHandler):
+    def _json(self, data, status=200):
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(data).encode())
 
-app = Flask(__name__)
+    def do_GET(self):
+        self._json({"hint": "Use ParentIds to chain requests"})
 
-@app.route("/piwebapi/batch", methods=["POST"])
-def batch():
-    data = request.get_json() or {}
-    has_parent = any("ParentIds" in v for v in data.values() if isinstance(v, dict))
-    if has_parent and len(data) >= 2:
-        flag = open("/flag").read().strip()
-        return jsonify({
-            "search": {"Status": 200, "Content": {"Items": [{"WebId": "P1DPFLOW", "Name": "FLOW.Rate"}]}},
-            "getValue": {"Status": 200, "Content": {"Value": 250.5, "UnitsAbbreviation": "m³/h"}},
-            "flag": flag
-        })
-    return jsonify({"error": "Create a batch with ParentIds dependency"}), 400
+    def do_POST(self):
+        if self.path == "/piwebapi/batch":
+            length = int(self.headers.get("Content-Length", 0))
+            data = json.loads(self.rfile.read(length)) if length else {}
+            has_parent = any("ParentIds" in v for v in data.values() if isinstance(v, dict))
+            if has_parent and len(data) >= 2:
+                flag = open("/flag").read().strip()
+                self._json({"search": {"Status": 200, "Content": {"Items": [{"WebId": "P1DPFLOW"}]}}, "getValue": {"Status": 200, "Content": {"Value": 250.5}}, "flag": flag})
+            else:
+                self._json({"error": "Create a batch with ParentIds dependency"}, 400)
+        else:
+            self._json({"error": "Not found"}, 404)
 
-@app.route("/")
-def index():
-    return jsonify({"hint": "Use ParentIds to chain requests"})
+    def log_message(self, *args): pass
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=80)
+    HTTPServer(("0.0.0.0", 8080), Handler).serve_forever()
